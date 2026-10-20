@@ -72,7 +72,7 @@ async def create_profile(
     result = await db.execute(stmt_request_user)
     request_user = result.scalar_one_or_none()
 
-    if db_user is None or db_user.is_active == False:
+    if db_user is None or db_user.is_active is False:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or not active.",
@@ -109,7 +109,7 @@ async def create_profile(
         gender=user.gender,
         date_of_birth=user.date_of_birth,
         info=user.info,
-        avatar=filename,
+        avatar=url_file,
     )
     db.add(new_profile)
     await db.commit()

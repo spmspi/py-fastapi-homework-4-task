@@ -69,7 +69,7 @@ async def register_user(
         user_data: UserRegistrationRequestSchema,
         background_tasks : BackgroundTasks,
         db: AsyncSession = Depends(get_db),
-        email_sender: EmailSender  = Depends(get_accounts_email_notificator),
+        email_sender: EmailSender = Depends(get_accounts_email_notificator),
 ) -> UserRegistrationResponseSchema:
     """
     Endpoint for user registration.
@@ -122,7 +122,7 @@ async def register_user(
 
         await db.commit()
         await db.refresh(new_user)
-        activation_link = "api/v1/activate/{activation_token.token}"
+        activation_link = f"api/v1/activate/{activation_token.token}"
         background_tasks.add_task(
             email_sender.send_activation_email,
             str(new_user.email),
@@ -172,7 +172,7 @@ async def register_user(
 async def activate_account(
         activation_data: UserActivationRequestSchema,
         background_tasks : BackgroundTasks,
-        email_sender: EmailSender  = Depends(get_accounts_email_notificator),
+        email_sender: EmailSender = Depends(get_accounts_email_notificator),
         db: AsyncSession = Depends(get_db),
 ) -> MessageResponseSchema:
     """
