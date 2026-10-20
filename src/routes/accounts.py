@@ -34,7 +34,7 @@ from schemas import (
 from security.interfaces import JWTAuthManagerInterface
 
 router = APIRouter()
-
+base_url = tr(request.base_url).rstrip("/")
 
 @router.post(
     "/register/",
@@ -67,7 +67,8 @@ router = APIRouter()
 )
 async def register_user(
         user_data: UserRegistrationRequestSchema,
-        background_tasks : BackgroundTasks,
+        background_tasks: BackgroundTasks,
+        request: Request,
         db: AsyncSession = Depends(get_db),
         email_sender: EmailSender = Depends(get_accounts_email_notificator),
 ) -> UserRegistrationResponseSchema:
@@ -122,7 +123,7 @@ async def register_user(
 
         await db.commit()
         await db.refresh(new_user)
-        activation_link = f"api/v1/activate/{activation_token.token}"
+        activation_link = f"{base_url}/api/v1/activate/{activation_token.token}"
         background_tasks.add_task(
             email_sender.send_activation_email,
             str(new_user.email),
@@ -171,7 +172,7 @@ async def register_user(
 )
 async def activate_account(
         activation_data: UserActivationRequestSchema,
-        background_tasks : BackgroundTasks,
+        background_tasks: BackgroundTasks,
         email_sender: EmailSender = Depends(get_accounts_email_notificator),
         db: AsyncSession = Depends(get_db),
 ) -> MessageResponseSchema:
@@ -227,7 +228,7 @@ async def activate_account(
     user.is_active = True
     await db.delete(token_record)
     await db.commit()
-    link = "api/v1/login/"
+    link = f"{base_url}/api/v1/login/"
     background_tasks.add_task(
         email_sender.send_activation_complete_email,
         str(user.email),
@@ -280,7 +281,7 @@ async def request_password_reset_token(
     reset_token = PasswordResetTokenModel(user_id=cast(int, user.id))
     db.add(reset_token)
     await db.commit()
-    link = "api/v1/reset-password/complete/"
+    link = f"{base_url}/api/v1/reset-password/complete/"
     background_tasks.add_task(
         email_sender.send_password_reset_email,
         str(user.email),
@@ -395,7 +396,7 @@ async def reset_password(
         user.password = data.password
         await db.run_sync(lambda s: s.delete(token_record))
         await db.commit()
-        link = "api/v1/login/"
+        link = f"{base_url}/api/v1/login/"
         background_tasks.add_task(
             email_sender.send_password_reset_complete_email,
             str(user.email),

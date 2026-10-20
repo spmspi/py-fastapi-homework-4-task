@@ -1,5 +1,3 @@
-from io import BytesIO
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy.orm import joinedload, selectinload
@@ -109,9 +107,11 @@ async def create_profile(
         gender=user.gender,
         date_of_birth=user.date_of_birth,
         info=user.info,
-        avatar=url_file,
+        avatar=filename,
     )
     db.add(new_profile)
     await db.commit()
     await db.refresh(new_profile)
+
+    new_profile.avatar = url_file
     return new_profile
